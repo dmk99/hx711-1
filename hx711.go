@@ -1,6 +1,8 @@
 package hx711
 
 import (
+	"errors"
+	"github.com/montanaflynn/stats"
 	"github.com/mrmorphic/hwio"
 )
 
@@ -10,12 +12,24 @@ const (
 	GAIN_A_64  = 3
 )
 
+type HX711Attributes struct {
+	// Tare the reading at "zero"
+	Tare float64
+
+	// CalibratedReading the raw reading from the device for the CalibratedWeight
+	CalibratedReading float64
+
+	// CalibratedWeight the known weight when calibrating
+	CalibratedWeight float64
+}
+
 type HX711 struct {
-	Clock   string
-	Data    string
-	Gain    int
-	clkPin  hwio.Pin
-	dataPin hwio.Pin
+	Clock      string
+	Data       string
+	Gain       int
+	Attributes HX711Attributes
+	clkPin     hwio.Pin
+	dataPin    hwio.Pin
 }
 
 //New instantiates a new object
@@ -35,6 +49,18 @@ func New(data string, clock string) (*HX711, error) {
 		return &HX711{}, err
 	}
 	return &HX711{Clock: clock, Data: data, Gain: GAIN_A_128, clkPin: clkPin, dataPin: dataPin}, err
+}
+
+// New initializes a new object with the known calibration values
+func NewWithKnownAttributes(data string, clock string, attributes HX711Attributes) (*HX711, error) {
+	hx711, err := New(data, clock)
+	hx711.Attributes = attributes
+
+	if attributes.Tare == 0 || attributes.CalibratedWeight == 0 || attributes.CalibratedReading == 0 {
+		return &HX711{}, errors.New("unset attributes supplied")
+	}
+
+	return hx711, err
 }
 
 //OnReady Blocks until the chip is ready to send data
@@ -98,6 +124,80 @@ func (h *HX711) ReadData() (int32, error) {
 	}
 
 	return twosComp(c), h.SetGain()
+}
+
+// ReadCalibratedData get the values from the device and transform them per the known attributes
+func (h *HX711) ReadCalibratedData() (float64, error) {
+	rawReading, err := h.ReadData()
+
+	if err != nil {
+		return 0, err
+	}
+
+	reading := float64(rawReading) - h.Attributes.Tare
+	calibrated := float64(h.Attributes.CalibratedReading - h.Attributes.Tare)
+
+	ratio := float64(calibrated) / h.Attributes.CalibratedWeight
+
+	return ratio * reading, nil
+}
+
+// Tare get the tare value and set it for the device for the "zero" reading
+func (h *HX711) Tare(numberOfReadings int) (float64, error) {
+	readings, err := h.getReadings(numberOfReadings)
+
+	if err != nil {
+		return 0, err
+	}
+
+	tare, err := stats.Mean(readings)
+
+	if err != nil {
+		return 0, err
+	}
+
+	h.Attributes.Tare = tare
+
+	return tare, nil
+}
+
+// Calibrate calibrate the device by using a known weight
+func (h *HX711) Calibrate(numberOfReadings int, knownWeight float64) error {
+	readings, err := h.getReadings(numberOfReadings)
+
+	if err != nil {
+		return err
+	}
+
+	calibration, err := stats.Mean(readings)
+
+	if err != nil {
+		return err
+	}
+
+	h.Attributes.CalibratedReading = calibration
+	h.Attributes.CalibratedWeight = knownWeight
+
+	return nil
+}
+
+func (h *HX711) getReadings(numberOfReadings int) ([]float64, error) {
+	if numberOfReadings <= 0 {
+		return []float64{}, errors.New("must have readings >= 1")
+	}
+
+	readings := make([]float64, numberOfReadings)
+	for i := 0; i < numberOfReadings; i++ {
+		reading, err := h.ReadData()
+
+		if err != nil {
+			return []float64{}, err
+		}
+
+		readings[i] = float64(reading)
+	}
+
+	return readings, nil
 }
 
 func (h *HX711) tick() error {
