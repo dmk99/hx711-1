@@ -14,13 +14,13 @@ const (
 
 type HX711Attributes struct {
 	// Tare the reading at "zero"
-	Tare float64
+	Tare float64 `json:"tare"`
 
 	// CalibratedReading the raw reading from the device for the CalibratedWeight
-	CalibratedReading float64
+	CalibratedReading float64 `json:"calibratedReading"`
 
 	// CalibratedWeight the known weight when calibrating
-	CalibratedWeight float64
+	CalibratedWeight float64 `json:"calibratedWeight"`
 }
 
 type HX711 struct {
