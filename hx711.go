@@ -27,7 +27,7 @@ type HX711 struct {
 	Clock      string
 	Data       string
 	Gain       int
-	Attributes HX711Attributes
+	Attributes *HX711Attributes
 	clkPin     hwio.Pin
 	dataPin    hwio.Pin
 }
@@ -52,7 +52,7 @@ func New(data string, clock string) (*HX711, error) {
 }
 
 // New initializes a new object with the known calibration values
-func NewWithKnownAttributes(data string, clock string, attributes HX711Attributes) (*HX711, error) {
+func NewWithKnownAttributes(data string, clock string, attributes *HX711Attributes) (*HX711, error) {
 	hx711, err := New(data, clock)
 	hx711.Attributes = attributes
 
@@ -134,12 +134,7 @@ func (h *HX711) ReadCalibratedData() (float64, error) {
 		return 0, err
 	}
 
-	reading := float64(rawReading) - h.Attributes.Tare
-	calibrated := float64(h.Attributes.CalibratedReading - h.Attributes.Tare)
-
-	ratio := float64(calibrated) / h.Attributes.CalibratedWeight
-
-	return ratio * reading, nil
+	return CalculateCalibratedReading(rawReading, h.Attributes)
 }
 
 // Tare get the tare value and set it for the device for the "zero" reading
