@@ -183,15 +183,6 @@ func (h *HX711) Calibrate(numberOfReadings int, knownWeight float64) error {
 	return nil
 }
 
-// calculateScale calculate the scale. If tare or calibrated reading are zero return 1.
-func calculateScale(attributes *HX711Attributes) float64 {
-	if attributes.Tare != 0 && attributes.CalibratedReading != 0 {
-		return (attributes.CalibratedWeight - attributes.Tare) / attributes.CalibratedReading
-	}
-
-	return 1;
-}
-
 func (h *HX711) getReadings(numberOfReadings int) ([]float64, error) {
 	if numberOfReadings <= 0 {
 		return []float64{}, errors.New("must have readings >= 1")

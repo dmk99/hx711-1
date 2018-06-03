@@ -1,13 +1,13 @@
 package hx711
 
 import (
-	"testing"
 	"math"
+	"testing"
 )
 
 func TestCalculateCalibratedReading(t *testing.T) {
 	// Setup
-	attributes := HX711Attributes{Tare:5193, CalibratedReading:-2632, CalibratedWeight:1500}
+	attributes := HX711Attributes{Tare: 5193, CalibratedReading: -2632, CalibratedWeight: 1500}
 
 	// Execute
 	attributes.scale = calculateScale(&attributes)
