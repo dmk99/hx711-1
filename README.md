@@ -1,13 +1,16 @@
 # Reading from an hx711 24-Bit ADC on a Raspberry Pi in Golang
 
-This is a simple package to read the value from the HX711 load cell amplifier like this one from [sparkfun](https://www.sparkfun.com/products/13879)
+This is based off [https://github.com/rajmaniar/hx711](https://github.com/rajmaniar/hx711) it extends the implementation
+by adding the ability to tare and calibrate the device. It's non-opinionated about the units that you are converting
+e.g. grams, pounds etc.
 
-It uses the primitives from [HWIO](https://github.com/mrmorphic/hwio) and the protocol from the [HX711 data sheet](https://cdn.sparkfun.com/datasheets/Sensors/ForceFlex/hx711_english.pdf)
+The `HX711Attributes` struct is introduced to handle keeping track of known device attribute data.
 
-I've only tested this on a rPi Zero ([GPIO at pin 16 & 18](http://pinout.xyz/pinout/pin16_gpio23)) and it's (obviously) missing a lot of high-level things are tare, calibrate, etc. 
+Both the tare and calibration use the 50th percentile of the `numberOfReadings` retrieved because there are situations where a reading
+from the load cell can be a large spike which could throw off an average.
 
-Feel free to submit pull requests with new features.
-
+To tare the device you can use `Tare(numberOfReadings int)`.
+To calibrate the device you can use `Calibrate(numberOfReadings int, knownWeight float64)`.
 
 ### Example:
 
@@ -18,8 +21,11 @@ func main() {
 
    	clock := "gpio23"
    	data := "gpio24"
-   
-   	h,err := hx711.New(data,clock)
+
+    // existing attributes are known
+    attributes := &HX711.Attributes{Tare: 1000, CalibratedReading: 2000, CalibratedWeight: 1500}
+
+   	h,err := hx711.NewWithKnownAttributes(data, clock)
    
    	if err != nil {
    		fmt.Printf("Error: %v",err)
@@ -27,7 +33,9 @@ func main() {
    
    	for err == nil {
    		var data int32
-   		data, err = h.ReadData()
+
+   		// returns the reading based on the calibration attributes
+   		data, err = h.ReadCalibratedData()
    		fmt.Printf("Read from HX711: %v\n",data)
    		time.Sleep(250 * time.Millisecond)
    	}
@@ -35,7 +43,6 @@ func main() {
 }
 
 ```
-
 
 ### NB
 * `h.Reset()` will reset the chip
