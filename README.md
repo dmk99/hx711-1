@@ -18,28 +18,28 @@ To calibrate the device you can use `Calibrate(numberOfReadings int, knownWeight
 import "github.com/rajmaniar/hx711"
 
 func main() {
-
-   	clock := "gpio23"
-   	data := "gpio24"
-
+    
+    clock := "gpio23"
+    data := "gpio24"
+    
     // existing attributes are known
     attributes := &HX711.Attributes{Tare: 1000, CalibratedReading: 2000, CalibratedWeight: 1500}
-
-   	h,err := hx711.NewWithKnownAttributes(data, clock)
-   
-   	if err != nil {
-   		fmt.Printf("Error: %v",err)
-   	}
-   
-   	for err == nil {
-   		var data int32
-
-   		// returns the reading based on the calibration attributes
-   		data, err = h.ReadCalibratedData()
-   		fmt.Printf("Read from HX711: %v\n",data)
-   		time.Sleep(250 * time.Millisecond)
-   	}
-   	fmt.Printf("Stopped reading because of: %v\n",err)
+    
+    h,err := hx711.NewWithKnownAttributes(data, clock)
+    
+    if err != nil {
+        fmt.Printf("Error: %v",err)
+    }
+    
+    for err == nil {
+        var data int32
+    
+        // returns the reading based on the calibration attributes
+        data, err = h.ReadCalibratedData()
+        fmt.Printf("Read from HX711: %v\n",data)
+        time.Sleep(250 * time.Millisecond)
+    }
+    fmt.Printf("Stopped reading because of: %v\n",err)
 }
 
 ```
