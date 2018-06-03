@@ -157,7 +157,7 @@ func (h *HX711) Tare(numberOfReadings int) (float64, error) {
 	}
 
 	h.Attributes.Tare = tare
-	h.calculateScale()
+	h.Attributes.scale = calculateScale(h.Attributes)
 
 	return tare, nil
 }
@@ -178,15 +178,15 @@ func (h *HX711) Calibrate(numberOfReadings int, knownWeight float64) error {
 
 	h.Attributes.CalibratedReading = calibration
 	h.Attributes.CalibratedWeight = knownWeight
-	h.calculateScale()
+	h.Attributes.scale = calculateScale(h.Attributes)
 
 	return nil
 }
 
 // calculateScale calculate the scale. If tare or calibrated reading are zero return 1.
-func (h *HX711) calculateScale() float64 {
-	if h.Attributes.Tare != 0 && h.Attributes.CalibratedReading != 0 {
-		h.Attributes.scale = (h.Attributes.CalibratedWeight - h.Attributes.Tare) / h.Attributes.CalibratedReading
+func calculateScale(attributes *HX711Attributes) float64 {
+	if attributes.Tare != 0 && attributes.CalibratedReading != 0 {
+		return (attributes.CalibratedWeight - attributes.Tare) / attributes.CalibratedReading
 	}
 
 	return 1;

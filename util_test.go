@@ -10,6 +10,7 @@ func TestCalculateCalibratedReading(t *testing.T) {
 	attributes := HX711Attributes{Tare:5193, CalibratedReading:-2632, CalibratedWeight:1500}
 
 	// Execute
+	attributes.scale = calculateScale(&attributes)
 	calibratedReading, _ := CalculateCalibratedReading(-2632, &attributes)
 
 	// Verify
