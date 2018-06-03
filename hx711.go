@@ -63,7 +63,7 @@ func NewWithKnownAttributes(data string, clock string, attributes *HX711Attribut
 		return &HX711{}, errors.New("unset attributes supplied")
 	}
 
-	hx711.Attributes.scale = hx711.calculateScale()
+	hx711.Attributes.scale = calculateScale(hx711.Attributes)
 
 	return hx711, err
 }
