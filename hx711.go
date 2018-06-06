@@ -150,7 +150,7 @@ func (h *HX711) Tare(numberOfReadings int) (float64, error) {
 		return 0, err
 	}
 
-	tare, err := stats.Percentile(readings, 50)
+	tare, err := stats.Median(readings)
 
 	if err != nil {
 		return 0, err
@@ -170,7 +170,7 @@ func (h *HX711) Calibrate(numberOfReadings int, knownWeight float64) error {
 		return err
 	}
 
-	calibration, err := stats.Percentile(readings, 50)
+	calibration, err := stats.Median(readings)
 
 	if err != nil {
 		return err

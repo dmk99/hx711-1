@@ -6,7 +6,7 @@ e.g. grams, pounds etc.
 
 The `HX711Attributes` struct is introduced to handle keeping track of known device attribute data.
 
-Both the tare and calibration use the 50th percentile of the `numberOfReadings` retrieved because there are situations where a reading
+Both the tare and calibration use the median of the `numberOfReadings` retrieved because there are situations where a reading
 from the load cell can be a large spike which could throw off an average.
 
 To tare the device you can use `Tare(numberOfReadings int)`.
