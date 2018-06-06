@@ -21,9 +21,6 @@ type HX711Attributes struct {
 
 	// CalibratedWeight the known weight when calibrating
 	CalibratedWeight float64 `json:"calibratedWeight"`
-
-	// scale the scale calculated from the tare and calibration data
-	scale float64
 }
 
 type HX711 struct {
@@ -62,8 +59,6 @@ func NewWithKnownAttributes(data string, clock string, attributes *HX711Attribut
 	if attributes.Tare == 0 || attributes.CalibratedWeight == 0 || attributes.CalibratedReading == 0 {
 		return &HX711{}, errors.New("unset attributes supplied")
 	}
-
-	hx711.Attributes.scale = calculateScale(hx711.Attributes)
 
 	return hx711, err
 }
@@ -157,7 +152,6 @@ func (h *HX711) Tare(numberOfReadings int) (float64, error) {
 	}
 
 	h.Attributes.Tare = tare
-	h.Attributes.scale = calculateScale(h.Attributes)
 
 	return tare, nil
 }
@@ -178,7 +172,6 @@ func (h *HX711) Calibrate(numberOfReadings int, knownWeight float64) error {
 
 	h.Attributes.CalibratedReading = calibration
 	h.Attributes.CalibratedWeight = knownWeight
-	h.Attributes.scale = calculateScale(h.Attributes)
 
 	return nil
 }
